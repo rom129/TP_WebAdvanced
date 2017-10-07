@@ -48,7 +48,7 @@
 					</execution>
 				</executions>
 				<configuration>
-				<mainClass>ex01D.C</mainClass>
+				<mainClass>ex01E.ABC</mainClass>  <!-- ici on determine la main à executer lors du mvn compile et mvn  exec:java -Dexec.mainClass="" -->
 				<arguments>
 					<argument>foo</argument>
 					<argument>bar</argument>
