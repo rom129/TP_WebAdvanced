@@ -40,20 +40,57 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.2.1</version>
-				<executions>
+				 <executions>
+                    <execution>
+                        <id>build-app</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>dblab.hello.App</mainClass>
+                            <arguments>
+                                <argument>foo</argument>
+                                <argument>bar</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-log4jbasics</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>ex01C.Log4jBasics</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-C</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>ex01D.C</mainClass>
+                        </configuration>
+                    </execution>
 					<execution>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-				<mainClass>ex01E.ABC</mainClass>  <!-- ici on determine la main à executer lors du mvn compile et mvn  exec:java -Dexec.mainClass="" -->
-				<arguments>
-					<argument>foo</argument>
-					<argument>bar</argument>
-				</arguments>
-				</configuration>
+                        <id>build-main</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>ex01E.Main</mainClass>
+                        </configuration>
+                    </execution>
+					<execution>
+                        <id>build-tostringoverloading</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>ex01F.ToStringOverloading</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
 			</plugin>
 		</plugins>
 	</build>
