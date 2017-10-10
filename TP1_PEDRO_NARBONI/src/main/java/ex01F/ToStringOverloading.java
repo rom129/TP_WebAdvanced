@@ -1,19 +1,30 @@
 package ex01F; 
 
-public class ToStringOverloading { 
+import org.apache.log4j.Logger;
 
+public class ToStringOverloading { 
+	
+	protected static Logger log=Logger.getLogger(ToStringOverloading.class);
+	
+	/**
+	 * Main method. 
+	 * @param args
+	 */
 	public static void main(String[] args) { 
 		Circle c1 = new Circle(0,0, 5); 
 		Circle c2 = new Circle(0,0, 3); 
-		System.out.println("C1 => " + c1); 
+		System.out.println("C1 => " + c1);
+		log.info("C1 => " + c1);
+		log.info("C1.toString() => " + c1.toString());
+		
 	} 
 }
 
 //Questions :
-//--> Il faut savoir que chaque classe à une méthode toString() par défaut.
-// Lorsque l'on instancie cette classe un message contenant le nom de la classe et l'adresse en hexa est automatiquement généré par cette méthode.
+//--> Il faut savoir que chaque classe  une mÃ©thode toString() par dÃ©faut.
+// Lorsque l'on instancie cette classe un message contenant le nom de la classe et l'adresse en hexa est automatiquement gÃ©nÃ©rÃ© par cette mÃ©thode.
 // Lorsque l'on fait un Syso sur cette instance,  on voit apparaitre ce message. 
-// Comme ici, on redéfinit et surcharge la méthode avec un autre message, celui ci est appelé sans que la méthode soit nommé.
+// Comme ici, on redÃ©finit et surcharge la mÃ©thode avec un autre message, celui ci est appelÃ©  sans que la mÃ©thode soit nommÃ©.
 
-//--> Lorsque l'on renomme la méthode, celle ci ne surcharge plus la méthode par défaut.
-// Le message affiché redevient donc le nom de la classe et son adresse en hexa : ex01F.Circle@32cfa69a
+//--> Lorsque l'on renomme la mÃ©thode, celle ci ne surcharge plus la mï¿½thode par dï¿½faut.
+// Le message affichÃ© redevient donc le nom de la classe et son adresse en hexa : ex01F.Circle@32cfa69a

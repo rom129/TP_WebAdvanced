@@ -1,24 +1,35 @@
 package ex01E;
 
+import org.apache.log4j.Logger;
+
 class C extends B {
 
-    int x, a;
+	protected static Logger log=Logger.getLogger(C.class);
+	
+    int x = 10, a;
     
+    /**
+     * This method is used to overload the method m() of the B class.
+     */
     void m() {
         System.out.println("Je suis dans la méthode m d'une instance de C");
     }
-    
+   
     void test() {
         a = super.x;
+        log.info(" a = super.x = " + a);
         // a = super.super.x; 
 		// Il est impossible de faire super.super car ça ne respecte pas les règles d'encapsulation.
         a = ((B)this).x;
+        log.info(" a = ((B)this).x = " + a);
         a = ((A)this).x;
+        log.info(" a = ((A)this).x = " + a);
         super.m();
         // super.super.m(); 
 		// Il est impossible de faire super.super car ça ne respecte pas les règles d'encapsulation.
         ((B)this).m(); // (1)
     }
+    
 }
 
 //Questions :
