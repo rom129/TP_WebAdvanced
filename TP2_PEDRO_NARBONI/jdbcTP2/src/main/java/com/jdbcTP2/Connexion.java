@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+
+
 
 
 import org.apache.log4j.*;
@@ -17,23 +20,69 @@ public class Connexion {
 	enum TestTableColumns{
 		actor_id,last_name;
 	}
-	private final String jdbcDriverStr;
-	private final String jdbcURL;
+	private String jdbcDriverStr;
+	private String jdbcURL;
+	private String username;
+	private String password;
+	private String request;
+	
 	private Connection connection;
 	private Statement statement;
 	private ResultSet resultSet;
-	private PreparedStatement preparedStatement;
 	
 	/**
 	 * Constuctor of the class.
 	 * @param jdbcDriverStr
 	 * @param jdbcURL
 	 */
-	public Connexion(String jdbcDriverStr, String jdbcURL){
+	public Connexion(String jdbcDriverStr, String jdbcURL, String username, String password,String request) {
 		this.jdbcDriverStr = jdbcDriverStr;
-		log.info("Driver is : " + jdbcDriverStr);;
 		this.jdbcURL = jdbcURL;
-		log.info("URL is : " + jdbcURL);
+		this.username = username;
+		this.password = password;
+		this.request = request;
+	}
+	
+	/**
+	 * Connection
+	 * @param jdbcDriverStr
+	 * @return
+	 */
+	public Connection connect() {
+		try {
+			Class.forName(this.jdbcDriverStr);
+			connection =  DriverManager.getConnection(this.jdbcURL, this.username, this.password);
+		}catch(Exception e) {
+			log.debug("The database connection failed. Verify the URL");
+		}
+		return connection;
+	}
+	
+
+	public Connection getConnection() {
+		return connection;
+	}
+	
+	public Statement createState() {
+		try {
+			statement = connection.createStatement();
+		} catch(Exception e) {
+			log.debug("The creation of statement failed");
+		}
+		return statement;
+	}
+	
+
+	public Statement getStatement() {
+		return statement;
+	}
+	
+	public void execRequest(String request) throws SQLException {
+		if(request.toUpperCase().startsWith("SELECT")) {
+			resultSet = statement.executeQuery(request);
+		} else {
+			int update = statement.executeUpdate(request);
+		}
 	}
 	
 	/**
@@ -42,15 +91,11 @@ public class Connexion {
 	 */
 	public void readData() throws Exception {
 		try {
-			Class.forName(jdbcDriverStr);
-			connection =  DriverManager.getConnection(jdbcURL);
-			statement = connection.createStatement();
-			resultSet = statement.executeQuery("SELECT first_name,last_name FROM actor;");
+			connect();
+			createState();
+			execRequest(this.request);
 			getResultSet(resultSet);
-			//			preparedStatement = connection.prepareStatement("insert into school.salary values (default,?)");
-			//			preparedStatement.setString(1,"insert test from java");
-			preparedStatement.executeUpdate();
-		} catch (Exception e) {
+		} catch(Exception e) {
 			log.debug("The database connection failed. Verify the URL");
 		}finally{
 			close();
@@ -62,23 +107,51 @@ public class Connexion {
 	 * @param resultSet
 	 * @throws Exception
 	 */
-	private void getResultSet(ResultSet resultSet) throws Exception {
+	public void getResultSet(ResultSet resultSet) throws Exception {
+		int nbColomn = resultSet.getMetaData().getColumnCount();
+		int[] colomnSizes = new int[nbColomn];
+		String line = "", data;
+		String delimiterLine = " | ";
+		
+		for(int i=1; i <= nbColomn;i++) {
+			colomnSizes[i-1] = resultSet.getMetaData().getColumnDisplaySize(i);
+			data = resultSet.getMetaData().getColumnName(i);
+			line += data;
+			line += delimiterLine;
+			
+		}
+		System.out.println(line);
+		
 		while(resultSet.next()){
-			String lastName = resultSet.getString(TestTableColumns.last_name.toString());
-			log.info("Last Name is : " + lastName);
-			System.out.println("Last Name : "+lastName);
+			line = "";
+			for(int i=1; i <= nbColomn;i++) {
+				data = resultSet.getString(i);
+				line += data;
+				line += delimiterLine;
+			}
+			System.out.println(line);
 		}
 	}
 	
 	/**
 	 * This method close the connexion to the database.
 	 */
-	private void close(){
+	public void close(){
 		//we close the connection to the data base 
 		try {
-			if(resultSet!=null) resultSet.close();
-			if(statement!=null) statement.close();
-			if(connection!=null) connection.close();
+			if(resultSet!=null) {
+				resultSet.close();
+				resultSet = null;
+			}
+			if(statement!=null) {
+				statement.close();
+				statement = null;
+			}
+			if(connection!=null) {
+				connection.close();
+				connection = null;
+			}
+			
 		} catch(Exception e){
 			log.debug("The connection didn't close.");
 		}
