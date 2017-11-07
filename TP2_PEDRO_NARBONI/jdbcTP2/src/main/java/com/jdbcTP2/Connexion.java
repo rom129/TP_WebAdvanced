@@ -6,8 +6,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-public class Connexion {
 
+import org.apache.log4j.*;
+
+public class Connexion {
+	
+	
+	protected static Logger log=Logger.getLogger(Connexion.class);
+	
 	enum TestTableColumns{
 		actor_id,last_name;
 	}
@@ -17,39 +23,65 @@ public class Connexion {
 	private Statement statement;
 	private ResultSet resultSet;
 	private PreparedStatement preparedStatement;
+	
+	/**
+	 * Constuctor of the class.
+	 * @param jdbcDriverStr
+	 * @param jdbcURL
+	 */
 	public Connexion(String jdbcDriverStr, String jdbcURL){
 		this.jdbcDriverStr = jdbcDriverStr;
+		log.info("Driver is : " + jdbcDriverStr);;
 		this.jdbcURL = jdbcURL;
+		log.info("URL is : " + jdbcURL);
 	}
+	
+	/**
+	 * This method allows to read data from a database
+	 * @throws Exception
+	 */
 	public void readData() throws Exception {
 		try {
 			Class.forName(jdbcDriverStr);
 			connection =  DriverManager.getConnection(jdbcURL);
 			statement = connection.createStatement();
-			resultSet = statement.executeQuery("SELECT last_name FROM actor;");
+			resultSet = statement.executeQuery("SELECT first_name,last_name FROM actor;");
 			getResultSet(resultSet);
 			//			preparedStatement = connection.prepareStatement("insert into school.salary values (default,?)");
 			//			preparedStatement.setString(1,"insert test from java");
 			preparedStatement.executeUpdate();
+		} catch (Exception e) {
+			log.debug("The database connection failed. Verify the URL");
 		}finally{
 			close();
 		}
 	}
+	
+	/**
+	 * This method allows to print the data from the database.
+	 * @param resultSet
+	 * @throws Exception
+	 */
 	private void getResultSet(ResultSet resultSet) throws Exception {
 		while(resultSet.next()){
-			//Integer id = resultSet.getInt(TestTableColumns.actor_id.toString());
 			String lastName = resultSet.getString(TestTableColumns.last_name.toString());
-			//System.out.println("id: "+id);
+			log.info("Last Name is : " + lastName);
 			System.out.println("Last Name : "+lastName);
 		}
 	}
+	
+	/**
+	 * This method close the connexion to the database.
+	 */
 	private void close(){
 		//we close the connection to the data base 
 		try {
 			if(resultSet!=null) resultSet.close();
 			if(statement!=null) statement.close();
 			if(connection!=null) connection.close();
-		} catch(Exception e){}
+		} catch(Exception e){
+			log.debug("The connection didn't close.");
+		}
 	}
 
 }
