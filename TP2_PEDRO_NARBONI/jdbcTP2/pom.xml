@@ -46,11 +46,7 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>com.jdbcTP2.App</mainClass>
-                            <arguments>
-                                <argument>foo</argument>
-                                <argument>bar</argument>
-                            </arguments>
+                            <mainClass>com.jdbcTP2.SQLExec</mainClass>
                         </configuration>
                     </execution>
                 </executions>

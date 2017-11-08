@@ -17,9 +17,6 @@ public class Connexion {
 	
 	protected static Logger log=Logger.getLogger(Connexion.class);
 	
-	enum TestTableColumns{
-		actor_id,last_name;
-	}
 	private String jdbcDriverStr;
 	private String jdbcURL;
 	private String username;
@@ -37,10 +34,15 @@ public class Connexion {
 	 */
 	public Connexion(String jdbcDriverStr, String jdbcURL, String username, String password,String request) {
 		this.jdbcDriverStr = jdbcDriverStr;
+		log.info("jdbcDriverStr : " + jdbcDriverStr);
 		this.jdbcURL = jdbcURL;
+		log.info("jdbcURL : " + jdbcURL);
 		this.username = username;
+		log.info("username : " + username);
 		this.password = password;
+		log.info("password : " + password);
 		this.request = request;
+		log.info("request : " + request);
 	}
 	
 	/**
@@ -58,11 +60,18 @@ public class Connexion {
 		return connection;
 	}
 	
-
+	/**
+	 * getConnection()
+	 * @return connection;
+	 */
 	public Connection getConnection() {
 		return connection;
 	}
 	
+	/**
+	 * Creation of the statement.
+	 * @return statement;
+	 */
 	public Statement createState() {
 		try {
 			statement = connection.createStatement();
@@ -72,16 +81,27 @@ public class Connexion {
 		return statement;
 	}
 	
-
+	/**
+	 * getStatement()
+	 * @return statement;
+	 */
 	public Statement getStatement() {
 		return statement;
 	}
 	
+	/**
+	 * This method allows to execute a request.
+	 * If the request begin by Select we create String else, we create a Integer. 
+	 * @param request
+	 * @throws SQLException
+	 */
 	public void execRequest(String request) throws SQLException {
 		if(request.toUpperCase().startsWith("SELECT")) {
 			resultSet = statement.executeQuery(request);
 		} else {
 			int update = statement.executeUpdate(request);
+			log.info("Number of updates/deletes : " + update);
+			log.info("This is a request witch isn't a SELECT");
 		}
 	}
 	
@@ -96,7 +116,7 @@ public class Connexion {
 			execRequest(this.request);
 			getResultSet(resultSet);
 		} catch(Exception e) {
-			log.debug("The database connection failed. Verify the URL");
+
 		}finally{
 			close();
 		}
@@ -111,7 +131,7 @@ public class Connexion {
 		int nbColomn = resultSet.getMetaData().getColumnCount();
 		int[] colomnSizes = new int[nbColomn];
 		String line = "", data;
-		String delimiterLine = " | ";
+		String delimiterLine = " || ";
 		
 		for(int i=1; i <= nbColomn;i++) {
 			colomnSizes[i-1] = resultSet.getMetaData().getColumnDisplaySize(i);

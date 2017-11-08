@@ -1,9 +1,7 @@
 package com.jdbcTP2;
 
 
-public class App {
-	//public static final String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
-	//static String connectionString = "jdbc:mysql://localhost/sakila?user=root&password=root&useUnicode=true&characterEncoding=UTF-8";
+public class SQLExec {
 	static String driver;
 	static String url;
 	static String username;
@@ -21,3 +19,7 @@ public class App {
 		dao.readData();
 	}
 }
+
+/* To execute the code the command line is :
+ *  mvn exec:java -Dexec.mainClass="com.jdbcTP2.SQLExec" -Dexec.args="jdbc:mysql://localhost/sakila com.mysql.jdbc.Driver root root 'SELECT * FROM actor;'"
+ */
