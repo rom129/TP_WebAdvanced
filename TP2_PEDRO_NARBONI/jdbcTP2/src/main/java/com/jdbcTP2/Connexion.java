@@ -101,7 +101,7 @@ public class Connexion {
 		} else {
 			int update = statement.executeUpdate(request);
 			log.info("Number of updates/deletes : " + update);
-			log.info("This is a request witch isn't a SELECT");
+			log.info("This is a request which isn't a SELECT");
 		}
 	}
 	
