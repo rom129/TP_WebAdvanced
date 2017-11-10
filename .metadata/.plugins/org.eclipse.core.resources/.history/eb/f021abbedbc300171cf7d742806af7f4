@@ -1,0 +1,110 @@
+package com.jdbcTP2;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.jdbcTP2.Connexion.TestTableColumns;
+
+public class App 
+{
+	
+//	public static String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
+//	static String connectionString = "jdbc:mysql://localhost:8889/sakila?user=root&password=root&useUnicode=true&characterEncoding=UTF-8";
+//	public static String MYSQL_URL = connectionString;
+
+	
+	public static String MYSQL_DRIVER = null;
+	public static String MYSQL_URL = null;
+	public static String USER = null;
+	public static String PASSWORD = null;
+	public static Connection connection;
+
+	public static final String EXIT_COMMAND = "exit";
+
+	public static Connexion dao = new Connexion(null,null);
+
+
+	public static void main(String[] args) throws Exception {
+		//dao.readData();
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+//		while (true) {
+//			if(dao.connection==null){
+//				System.out.println("Enter MYSQL_DRIVER, or '" + EXIT_COMMAND + "' to quit");
+//				System.out.print("java SQLExec>");
+//				MYSQL_DRIVER=br.readLine();
+//				System.out.println("Enter MYSQL_URL, or '" + EXIT_COMMAND + "' to quit");
+//				System.out.print("java SQLExec>");
+//				MYSQL_URL=br.readLine();
+//				
+//				System.out.print("Mes vars: "+MYSQL_URL+" "+MYSQL_DRIVER);
+//				
+//				Class.forName(MYSQL_DRIVER);
+//				dao.connection =  DriverManager.getConnection(MYSQL_URL);
+//			
+//				System.out.println("\n****************************Connection OK*******************\n");
+//							
+//			}else{
+//				System.out.println("Enter any sql request, or '" + EXIT_COMMAND + "' to quit");
+//				System.out.println("java SQLExec>");
+//				String input=br.readLine();
+//				readData2(input, MYSQL_DRIVER,MYSQL_URL,USER,PASSWORD);
+//				//dao.readData(input);
+//				//System.out.println(input);
+//				if (input.length() == EXIT_COMMAND.length() && input.toLowerCase().equals(EXIT_COMMAND)) {
+//					System.out.println("Exiting.");
+//					return;
+//				}
+//
+//				System.out.println("...response goes here..."); 
+//			}
+			System.out.println("Enter any sql request, or '" + EXIT_COMMAND + "' to quit");
+			System.out.print("java SQLExec>");
+			if(args[0]!=null && args[1]!=null && args[2]!=null && args[3]!=null && args[4]!=null){
+				readData2(args[0], args[1], args[2], args[3], args[4]);
+			}
+//		}
+	}
+//	java SQLExec "JDBC:URL:FOR:DB" myDb.Driver.Name DBUserName
+//	DBPassword "SELECT MyDBQuery From MyMind"
+	public static void readData2(String jdbcUrl, String jdbcDriver,String user, String password,String sql) throws Exception {
+		try {
+			Statement statement;
+			ResultSet resultSet;
+			Connection con=connect(jdbcDriver, jdbcUrl, user, password);
+			statement = con.createStatement();
+			resultSet = statement.executeQuery(sql);
+			getResultSet(resultSet);
+			//			preparedStatement = connection.prepareStatement("insert into school.salary values (default,?)");
+			//			preparedStatement.setString(1,"insert test from java");
+			//preparedStatement.executeUpdate();
+		} catch (Exception e) {
+//			log.debug("The database connection failed. Verify the URL");
+		}finally{
+//			close();
+		}
+	}
+	public static Connection connect(String jdbcDriver, String jdbcUrl, String user, String password) throws SQLException{
+		
+		try{
+			Class.forName(jdbcDriver);
+			connection =  DriverManager.getConnection(jdbcUrl,user,password);
+		}catch(Exception e){
+			//log.debug("The connexion is failled");
+		}
+		return connection;
+	}
+	private static void getResultSet(ResultSet resultSet) throws Exception {
+		while(resultSet.next()){
+			String lastName = resultSet.getString(TestTableColumns.last_name.toString());
+//			log.info("Last Name is : " + lastName);
+			System.out.println("Last Name : "+lastName);
+		}
+	}
+}

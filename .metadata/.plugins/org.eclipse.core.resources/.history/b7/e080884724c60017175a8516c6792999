@@ -1,0 +1,51 @@
+package com.jdbcTP2;
+import java.io.File;
+import java.io.InputStream;
+import java.io.PrintStream;
+
+public class MySQLDumper {
+
+	private static String ip="localhost";
+	private static String port="8889";
+	private static String database="sakila";
+	private static String user="root";
+	private static String pass="root";
+	
+	static String property = "java.io.tmpdir";
+
+    // Get the temporary directory and print it.
+    static String tempDir = System.getProperty(property);
+    
+	private static String path= tempDir;
+//	 System.out.println("OS temporary directory is "+tempDir);
+	    
+
+			public static void export(){
+		String dumpCommand = "mysqldump " + database + " -h " + ip + " -u " + user +" -p" + pass;
+		Runtime rt = Runtime.getRuntime();
+		File test=new File(path);
+		PrintStream ps;
+
+		try{
+			Process child = rt.exec(dumpCommand);
+			ps=new PrintStream(test);
+			InputStream in = child.getInputStream();
+			int ch;
+			while ((ch = in.read()) != -1) {
+				ps.write(ch);
+				System.out.write(ch); //to view it by console
+			}
+
+			InputStream err = child.getErrorStream();
+			while ((ch = err.read()) != -1) {
+				System.out.write(ch);
+			}
+		}catch(Exception exc) {
+			exc.printStackTrace();
+		}
+	}
+
+	public static void main(String args[]){
+		export();
+	}
+}

@@ -1,0 +1,15 @@
+package com.jdbcTP2;
+
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+
+import com.mysql.jdbc.MySQLConnection;
+
+
+public class ReverseEngineering{
+	private Connection connection;
+
+	public DatabaseMetaData databaseMetaData= connection.getMetaData();
+	
+
+}
