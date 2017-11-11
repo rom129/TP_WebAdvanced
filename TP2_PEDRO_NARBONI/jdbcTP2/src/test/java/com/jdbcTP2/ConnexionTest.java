@@ -27,7 +27,7 @@ public class ConnexionTest extends TestCase {
     /**
      * Rigourous Test :-)
      */
-    public void testApp() {
+    public void testConnexion() {
     	String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
     	String connectionString = "jdbc:mysql://localhost/sakila";
     	String username="root";

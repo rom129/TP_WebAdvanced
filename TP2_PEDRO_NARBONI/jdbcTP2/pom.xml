@@ -41,12 +41,21 @@
 				<version>1.2.1</version>
 				 <executions>
                     <execution>
-                        <id>build-app</id>
+                        <id>build-sqlexec</id>
                         <goals>
                             <goal>java</goal>
                         </goals>
                         <configuration>
                             <mainClass>com.jdbcTP2.SQLExec</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-reverse</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.jdbcReverseEngineering.ReverseEngineeringExec</mainClass>
                         </configuration>
                     </execution>
                 </executions>
