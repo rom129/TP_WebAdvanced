@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter; 
 import java.sql.*; 
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -91,7 +92,12 @@ public class ReverseEngineering {
 			System.err.println ("Cannot connect to database server"); 
 		} 
 	} 
-
+	
+	/**
+	 * Creation of the database.
+	 * @param database
+	 * @return
+	 */
 	public String dumpCreateDatabase(String database) { 
 		String createDatabase = null; 
 		try { 
@@ -107,44 +113,70 @@ public class ReverseEngineering {
 		return createDatabase; 
 	} 
 
+	/**
+	 * Creation of all tables of the database including views
+	 * @param out
+	 * @throws SQLException
+	 * @throws IOException
+	 */
 	public void dumpAllTables(BufferedWriter out) throws SQLException,IOException { 
 		Statement st=conn.createStatement();
 		ResultSet rs=st.executeQuery("show tables"); 
 		while(rs.next()) { 
 			String tableName=rs.getString(1); 
+			log.info("Table or View write in the new .sql : " + tableName);
 			out.write(dumpCreateTable(tableName)); 
 			this.dumpTable(out,tableName); 
 		} 
 
 	} 
-
-	public String dumpCreateTable(String table) { 
+	
+	/**
+	 * Creation of tables.
+	 * @param table
+	 * @return
+	 * @throws SQLException
+	 */
+	public String dumpCreateTable(String table) throws SQLException { 
 		return dumpCreateTable(schema,table); 
 	} 
 
-	public String dumpCreateTable(String schema, String table) { 
+	/**
+	 * Creation of tables.
+	 * @param schema
+	 * @param table
+	 * @return
+	 * @throws SQLException
+	 */
+	public String dumpCreateTable(String schema, String table) throws SQLException { 
 		String createTable = "--\n-- Table structure for table `"  + table  + 
 				"`\n--\n\n"; 
 		try{ 
-			Statement s = conn.createStatement   
-					(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY); 
-			s.executeQuery ("SHOW CREATE TABLE "  + schema  + "."  + table); 
+			Statement s = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY); 
+			s.executeQuery("SHOW CREATE TABLE "  + schema  + "."  + table); 
 			ResultSet rs = s.getResultSet (); 
-			while (rs.next ()) 
-			{ 
+			while (rs.next ()) { 
 				createTable  = rs.getString("Create Table")  + ";"; 
 			} 
 		} catch (SQLException e) { 
-			System.err.println (e.getMessage()); 
-			createTable = ""; 
+			Statement s2 = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY); 
+			s2.executeQuery("SHOW CREATE VIEW "  + schema  + "."  + table); 
+			ResultSet rs = s2.getResultSet (); 
+			while (rs.next ()) { 
+				createTable  = rs.getString("Create View")  + ";"; 
+			} 
 		} 
 		return createTable; 
 	} 
-
+	
+	/**
+	 * This method allows to write the insertion of datas. 
+	 * @param out
+	 * @param table
+	 */
 	public void dumpTable(BufferedWriter out, String table){ 
 		try{ 
-			Statement s = conn.createStatement   
-					(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY); 
+			Statement s = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY); 
 			s.executeQuery ("SELECT /*!40001 SQL_NO_CACHE */ * FROM "+table); 
 			ResultSet rs = s.getResultSet (); 
 			ResultSetMetaData rsMetaData = rs.getMetaData(); 
@@ -152,6 +184,7 @@ public class ReverseEngineering {
 				out.write("--\n-- Dumping data for table `" +  table+ "`\n--\n\n"); 
 				rs.beforeFirst(); 
 			} 
+			
 			int columnCount = rsMetaData.getColumnCount(); 
 			String prefix = new String("INSERT INTO " +  table +  " ("); 
 			for (int i = 1; i <= columnCount; i ++ ) { 
@@ -161,19 +194,17 @@ public class ReverseEngineering {
 					prefix  = rsMetaData.getColumnName(i) +  ","; 
 				} 
 			} 
+			
 			String postfix = new String(); 
 			int count = 0; 
-			while (rs.next()) 
-			{ 
+			while (rs.next()) { 
 				postfix = ""; 
 				for (int i = 1; i <= columnCount; i++) { 
 					if (i == columnCount){ 
-						postfix  = "unhex('"     
-								+ escapeString(rs.getBytes(i)).toString() +  "'));\n"; 
+						postfix  = "unhex('" + escapeString(rs.getBytes(i)).toString() +  "'));\n"; 
 					}else{ 
 						try{ 
-							postfix  = "unhex('"     
-									+ escapeString(rs.getBytes(i)).toString() +  "'),"; 
+							postfix  = "unhex('" + escapeString(rs.getBytes(i)).toString() +  "'),"; 
 						}catch (Exception e){ 
 							postfix  = "NULL,"; 
 						} 
@@ -182,6 +213,7 @@ public class ReverseEngineering {
 				out.write(prefix  + postfix); 
 				count++; 
 			} 
+			
 			rs.close (); 
 			s.close(); 
 		}catch(IOException e){ 
@@ -198,7 +230,7 @@ public class ReverseEngineering {
 	 * @return bOut      MySQL compatible insert ready ByteArrayOutputStream 
 	 */ 
 	private ByteArrayOutputStream escapeString(byte[] bIn){ 
-		int numBytes = bIn.length; 
+		int numBytes = bIn.length;
 		ByteArrayOutputStream bOut = new ByteArrayOutputStream(numBytes); 
 		for (int i = 0; i < numBytes;++i) { 
 			byte b = bIn[i]; 
@@ -254,14 +286,18 @@ public class ReverseEngineering {
 			'6', '7', '8', '9', 'a', 'b', 
 			'c', 'd', 'e', 'f' 
 	}; 
+	
+	/**
+	 * Creation of the Headers of the file.
+	 * @return
+	 */
 	public String getHeader(){ 
 		return "-- BinaryStor MySQL Dump "  + version +"\n--\n-- Host: " + hostname + "    "+"Database: " +schema+
-				"\n--------------------------------------------------------\n-- Server Version: " +  databaseProductVersion +  "\n--"; 
+				"\n--------------------------------------------------------\n-- Server Version: " +  databaseProductVersion +  "\n"; 
 	} 
 
 	/** 
-	 * Parse command line arguments and run ReverseEngineering 
-	 * 
+	 * Parse command line arguments and run ReverseEngineering.
 	 * @param  args  Command line arguments 
 	 */ 
 	public void doMain(String[] args) throws IOException { 
@@ -273,6 +309,7 @@ public class ReverseEngineering {
 			BufferedWriter out = new BufferedWriter(new FileWriter(temp)); 
 			this.connect(args[0], args[1], args[2], args[3], args[4]); 
 			out.write(getHeader()); 
+			System.out.println("---------------------------------------------------------------------------------");
 			this.dumpCreateDatabase(args[4]);
 			this.dumpAllTables(out);
 			out.flush(); 
@@ -283,11 +320,16 @@ public class ReverseEngineering {
 			System.err.println (se.getMessage()); 
 		} 
 	} 
-
+	
+	/**
+	 * Close the connection.
+	 * @return 1
+	 */
 	public int cleanup(){ 
 		try 
 		{ 
-			conn.close (); 
+			conn.close();
+			conn = null;
 			if (verbose){ 
 				System.out.println ("Database connection terminated"); 
 			} 
@@ -298,5 +340,9 @@ public class ReverseEngineering {
 	
 	public String getSchema() {
 		return this.schema;
+	}
+	
+	public Connection getConnection() {
+		return this.conn;
 	}
 } 

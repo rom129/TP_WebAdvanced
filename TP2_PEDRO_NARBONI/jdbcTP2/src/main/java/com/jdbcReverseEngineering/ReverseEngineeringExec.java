@@ -2,6 +2,9 @@ package com.jdbcReverseEngineering;
 
 import java.io.IOException;
 
+/**
+ * Main Class for the execution of the Reverse Engineering.
+ */
 public class ReverseEngineeringExec {
 	
 	static String driver;

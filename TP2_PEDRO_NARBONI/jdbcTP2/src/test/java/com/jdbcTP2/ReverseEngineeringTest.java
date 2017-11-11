@@ -44,5 +44,8 @@ public class ReverseEngineeringTest extends TestCase {
     	re.connect(MYSQL_DRIVER, MYSQL_HOST, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_SCHEMA);
     	assertNotNull(re.getSchema());
     	assertEquals("sakila", re.getSchema());
+    	
+    	re.cleanup();
+    	assertNull(re.getConnection());
     }
 }
