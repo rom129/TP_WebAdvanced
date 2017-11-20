@@ -23,13 +23,26 @@ public class DBBase {
 	
 	private DatabaseMetaData dbMetaData;
 	
+	/**
+	 * Constructor of DBBase.
+	 * @param url
+	 * @param driver
+	 * @param user
+	 * @param password
+	 * @param database
+	 * @throws Exception
+	 */
 	public DBBase(String url, String driver, String user, String password, String database) throws Exception {
 		this.dbName = database;
 		connect = new Connexion(url, driver, user, password, database);
 		connect.initialiseConnection();
 		dbMetaData = connect.getConnection().getMetaData();
 	}
-
+	
+	/**
+	 * Creation of the Database containing tables
+	 * @throws Exception
+	 */
 	public void createDB() throws Exception {
 		String[] types = { "TABLE" };
 		ResultSet tables = null;
@@ -37,18 +50,21 @@ public class DBBase {
 			tables = dbMetaData.getTables(null, null, "%", types);
 			DBTableFactory tableFact = new DBTableFactory();
 			if (tables.next()) {
-				do {
+				while (tables.next()) {
 					DBTable dbTable = tableFact.creationOfTable(tables, dbMetaData);
 					this.tablesList.add(dbTable);	
-				} while (tables.next());
-				
+				} 
 			}
 		}catch(SQLException e) {
 			e.printStackTrace();
 		}
-		connect.closeResultSet(tables);
 	}
 	
+	/**
+	 * Convert to SQL Format.
+	 * @return strBuffer.toString()
+	 * @throws Exception
+	 */
 	public String toSQL() throws Exception {
 		createDB();
 		StringBuffer strBuffer = new StringBuffer();
@@ -58,7 +74,7 @@ public class DBBase {
 		strBuffer.append("-- Tables\n");
 		
 		for(DBTable table : this.tablesList) {
-			log.info("there is this table : " + table.getName());
+			log.debug("there is this table : " + table.getName());
 			strBuffer.append(table.toSQL());
 		}
 		return strBuffer.toString();

@@ -95,19 +95,4 @@ public class Connexion {
 			System.out.println("Error : " + e.getMessage());
 		}
 	}
-	
-	/**
-	 * Close resultSet.
-	 * @param rs
-	 */
-	public void closeResultSet(ResultSet rs) {
-		try {
-			if (rs != null) {
-				rs.close();
-				rs = null;
-			}
-		} catch (Exception e) {
-			System.out.println("Error : " + e.getMessage());
-		}
-	}
 }

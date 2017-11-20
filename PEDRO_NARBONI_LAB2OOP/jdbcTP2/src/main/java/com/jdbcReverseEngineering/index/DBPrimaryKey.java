@@ -1,7 +1,12 @@
 package com.jdbcReverseEngineering.index;
 
 public class DBPrimaryKey extends DBKey {
-
+	
+	/**
+	 * Constructor.
+	 * @param keyName
+	 * @param columnName
+	 */
 	public DBPrimaryKey(String keyName, String columnName) {
 		super(keyName, columnName);
 	}

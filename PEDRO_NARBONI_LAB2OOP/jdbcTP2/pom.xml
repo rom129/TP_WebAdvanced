@@ -35,27 +35,28 @@
 				</executions>
 			</plugin>
 			
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+			
 			<plugin>	
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.2.1</version>
 				 <executions>
                     <execution>
-                        <id>build-sqlexec</id>
+                        <id>build-reverseEngineering</id>
                         <goals>
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>com.jdbcTP2.SQLExec</mainClass>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>build-reverse</id>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>com.jdbcReverseEngineering.ReverseEngineeringExec</mainClass>
+                            <mainClass>com.jdbcReverseEngineering.Launcher</mainClass>
                         </configuration>
                     </execution>
                 </executions>
