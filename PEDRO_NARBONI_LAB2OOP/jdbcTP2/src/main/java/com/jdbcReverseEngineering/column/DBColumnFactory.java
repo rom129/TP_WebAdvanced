@@ -12,7 +12,8 @@ public class DBColumnFactory {
 		int sqlType;
 				
 		String columnName = column.getString("COLUMN_NAME");
-		String typeName = column.getString("TYPE_NAME");
+		String typeName = column.getString("TYPE_NAME").split(" ")[0];
+		boolean unsigned = column.getString("TYPE_NAME").split(" ").length > 1;
         String strNullable = column.getString("IS_NULLABLE");
         String isNullableBool = isNullableBool(strNullable);
         String columnDef = column.getString("COLUMN_DEF");
@@ -22,14 +23,14 @@ public class DBColumnFactory {
 		sqlType = column.getInt("DATA_TYPE");
 		
 		dbColumn = creationOfColumn(columnName, sqlType, columnSize, isNullableBool,
-				typeName, columnDef, decimalDigit);
+				typeName, columnDef, decimalDigit, unsigned);
 		
 		return dbColumn;
 	}
 	
 	public static DBColumn creationOfColumn(String columnName, int sqlType, int columnSize, String isNullable, 
-			String typeName, String columnDef, int decimalDigit) {
-		DBColumn dbColumn = new DBColumnDefault(columnName, typeName, isNullable);
+			String typeName, String columnDef, int decimalDigit, boolean unsigned) {
+		DBColumn dbColumn = null;
 		switch(sqlType) {
 			//One parameter not String
 			case Types.TINYINT : 
@@ -39,7 +40,7 @@ public class DBColumnFactory {
 			case Types.INTEGER : 
 			case Types.DATE :
 			case Types.TIME :
-				dbColumn =  new DBColumnNumber(columnName, typeName, isNullable, columnSize, columnDef);
+				dbColumn =  new DBColumnNumber(columnName, typeName, isNullable, columnSize, columnDef, unsigned);
 				break;
 				 
 			//Two parameters

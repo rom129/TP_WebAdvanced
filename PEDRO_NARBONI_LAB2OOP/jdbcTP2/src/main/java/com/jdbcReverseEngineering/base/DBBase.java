@@ -30,10 +30,8 @@ public class DBBase {
 		dbMetaData = connect.getConnection().getMetaData();
 	}
 
-	public String toSQL() throws Exception {
+	public void createDB() throws Exception {
 		String[] types = { "TABLE" };
-		StringBuffer strBuffer = new StringBuffer();
-		strBuffer.append("CREATE DATABASE " + this.dbName);
 		ResultSet tables = null;
 		try {
 			tables = dbMetaData.getTables(null, null, "%", types);
@@ -41,17 +39,28 @@ public class DBBase {
 			if (tables.next()) {
 				do {
 					DBTable dbTable = tableFact.creationOfTable(tables, dbMetaData);
-					tablesList.add(dbTable);	
+					this.tablesList.add(dbTable);	
 				} while (tables.next());
-				for(DBTable table : tablesList) {
-					log.info("there is this table : " + table.getName());
-					strBuffer.append(table.toSQL());
-				}
+				
 			}
 		}catch(SQLException e) {
 			e.printStackTrace();
 		}
 		connect.closeResultSet(tables);
+	}
+	
+	public String toSQL() throws Exception {
+		createDB();
+		StringBuffer strBuffer = new StringBuffer();
+		
+		strBuffer.append("-- Database " + this.dbName + "\n");
+		strBuffer.append("CREATE DATABASE " + this.dbName + ";\n\n");
+		strBuffer.append("-- Tables\n");
+		
+		for(DBTable table : this.tablesList) {
+			log.info("there is this table : " + table.getName());
+			strBuffer.append(table.toSQL());
+		}
 		return strBuffer.toString();
 	}
 }

@@ -5,7 +5,6 @@ public abstract class DBColumn {
 
 	protected String columnName;
 	protected String typeName;
-	//private int columnSize;
 	protected String isNullable;
 	protected final String STR_SYMBOL = "`";
 	

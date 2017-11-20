@@ -8,9 +8,10 @@ import java.sql.DatabaseMetaData;
 
 import org.apache.log4j.Logger;
 
-import com.jdbcReverseEngineering.base.DBBase;
 import com.jdbcReverseEngineering.column.DBColumn;
 import com.jdbcReverseEngineering.column.DBColumnFactory;
+import com.jdbcReverseEngineering.index.DBKey;
+import com.jdbcReverseEngineering.index.DBKeyFactory;
 
 public class DBTable {
 	
@@ -18,41 +19,145 @@ public class DBTable {
 	
 	private String tableName;
 	private List<DBColumn> columnsList = new LinkedList<DBColumn>();
+	private List<DBKey> indexesList = new LinkedList<DBKey>();
+	
+	private List<String> notAllowedIndexes = new LinkedList<String>() {
+		{
+			add("PRIMARY");
+			add("INDEX");
+			add("FOREIGN");
+		}
+	};
+	
 	
 	private DatabaseMetaData dbMetaData;
 	
+	/**
+	 * Constructor of DBTable.
+	 * @param tablesName
+	 * @param dbMetaData
+	 * @throws SQLException
+	 */
 	public DBTable(String tablesName, DatabaseMetaData dbMetaData) throws SQLException {
 		this.tableName = tablesName;
 		this.dbMetaData = dbMetaData;
 	}
 	
 	/**
-	 * 
-	 * @return
-	 * @throws Exception 
+	 * Create a list with all columns.
+	 * @throws SQLException
 	 */
-	public String toSQL() throws Exception {
-		StringBuffer strBuffer = new StringBuffer();
+	public void createColumnsInList() throws SQLException {
 		ResultSet columns = null;
-		strBuffer.append("\n\n-- " + this.tableName);
-		strBuffer.append("\nCREATE TABLE " + this.tableName + " (\n");
-
+		
 		columns = dbMetaData.getColumns(null, null, this.tableName, null);
-		//printResult(columns);
 		DBColumnFactory dbColumnFact = new DBColumnFactory();
 		if(columns.next()) {
 			do {
 				DBColumn dbColumn = dbColumnFact.creationOfColumn(columns);
 				columnsList.add(dbColumn);	
 			} while (columns.next());
-			for(DBColumn column : columnsList) {
-				log.info("there is this column : " + column.getName());
-				strBuffer.append(column.toSQL());
+		}
+    }
+	
+	/**
+	 * Add all primary keys to the idexesList.
+	 * @throws SQLException
+	 */
+	private void addPrimaryKeysInIndexList() throws SQLException {
+
+		DBKey key = null;
+		String primaryKeyName = null, lastPrimaryKeyName = null;
+		ResultSet primaryKeys = dbMetaData.getPrimaryKeys(null, null, this.tableName);
+		while (primaryKeys.next()) {
+			primaryKeyName = primaryKeys.getString("PK_NAME");
+			if(notAllowedIndexes.contains(primaryKeyName)) {
+				primaryKeyName = "";
+			}
+			if (lastPrimaryKeyName ==null || !lastPrimaryKeyName.equals(primaryKeyName)) {
+				key = DBKeyFactory.create(primaryKeyName, "PRIMARY", primaryKeys);
+				indexesList.add(key);
+			}
+			lastPrimaryKeyName = primaryKeyName;
+		}
+
+	}
+	
+	
+	private void addIndexInIndexLists() throws SQLException {
+		DBKey key = null;
+		String keyName = null, lastkeyName = null;
+		ResultSet indexesInfo = dbMetaData.getIndexInfo(null, null, this.tableName, false, false);
+		while (indexesInfo.next()) {
+			keyName = indexesInfo.getString("INDEX_NAME");
+			if(!notAllowedIndexes.contains(keyName)) {
+				if (keyName !=null && !keyName.equals(lastkeyName)) {
+					key = DBKeyFactory.create(keyName, "INDEX", indexesInfo);
+					indexesList.add(key);
+				}
+				else {
+					DBKeyFactory.addKeyColumn(key, "INDEX", indexesInfo);
+				}
+				lastkeyName = keyName;
 			}
 		}
+	}
+	
+	
+	/**
+	 * Return a SQL format.
+	 * @return strBuffer.toString()
+	 * @throws Exception
+	 */
+	public String toSQL() throws Exception {
+		createColumnsInList();
+		addPrimaryKeysInIndexList();
+		addIndexInIndexLists();
 		
+		StringBuffer strBuffer = new StringBuffer();
+		strBuffer.append(createTabletoSQL());
+		strBuffer.append("\n\n");
+		strBuffer.append(indexesToSQL());
 		return strBuffer.toString();
-    }
+	}
+	
+	/**
+	 * Return a SQL format.
+	 * @return strBuffer.toString()
+	 * @throws Exception
+	 */
+	public String createTabletoSQL() throws Exception {
+		StringBuffer strBuffer = new StringBuffer();
+		strBuffer.append("\n\n-- " + this.tableName);
+		strBuffer.append("\nCREATE TABLE " + this.tableName + " (\n");
+		for(DBColumn column : columnsList) {
+			log.info("there is this column : " + column.getName());
+			strBuffer.append(column.toSQL());
+		}
+		return strBuffer.toString();
+	}
+	
+	/**
+	 * Return a SQL format.
+	 * @return strBuffer.toString()
+	 */
+	public String indexesToSQL() {
+
+        final StringBuffer strBuffer = new StringBuffer();
+        strBuffer.append("--\n-- Index pour la table " + this.tableName +"\n--\n");
+        strBuffer.append("ALTER TABLE " + this.tableName + " \n");
+        for (DBKey key : indexesList) {
+        	strBuffer.append("\tADD ");
+        	strBuffer.append(key.toSQL());
+        	strBuffer.append(",\n");
+        }
+        if (indexesList.size()>0) {
+        	strBuffer.deleteCharAt(strBuffer.toString().lastIndexOf(','));
+        	strBuffer.deleteCharAt(strBuffer.toString().lastIndexOf('\n'));
+        }
+        strBuffer.append(";\n\n");
+        return strBuffer.toString();
+	}
 	
 	/**
 	 * getName()
@@ -60,63 +165,5 @@ public class DBTable {
 	 */
 	public String getName() {
 		return tableName;
-	}
-	
-	/***************
-	 * 
-	 *  TOUTES LES METHODES CI-DESSOUS SONT A ENLEVER APRES LA VAILDATION DES TESTS
-	 */
-	public void printResult(ResultSet resultSet) throws Exception {
-		int nbCol = resultSet.getMetaData().getColumnCount();
-		int[] colSizes = new int[nbCol];
-		String line = "", delimiterLine;
-
-		line = getHeader(resultSet, colSizes, nbCol);
-		System.out.println(line);
-		
-		delimiterLine = String.format("%1$" + line.length() + "s", "")
-				.replace(" ", /*LINE_DELIMITER*/ "/");
-		System.out.println(delimiterLine);
-		
-		while (resultSet.next()) {
-			line = getLine(resultSet, colSizes, nbCol);
-			System.out.println(line);
-		}
-	}
-	
-	
-	private String getLine(ResultSet resultSet, int[] colSizes, int nbCol) throws Exception {
-		String data="", line="";
-		for (int i = 1; i <= nbCol; ++i) {
-			data = resultSet.getString(i);
-			line += String.format("%1$" + colSizes[i - 1] + "s", data);
-			if (i < nbCol) {
-				line = addColumnDelimiter(line);
-			}
-		}
-		return line;
-	}
-	
-	private String getHeader(ResultSet resultSet, int[] colSizes, int nbCol) throws Exception {
-		String data="", line="";
-		for (int i = 1; i <= nbCol; ++i) {
-			colSizes[i - 1] = resultSet.getMetaData().getColumnDisplaySize(i);
-			if (colSizes[i-1] < resultSet.getMetaData().getColumnName(i).length()) {
-				colSizes[i-1] = resultSet.getMetaData().getColumnName(i).length();
-			}
-			//System.out.println(resultSet.getMetaData().getColumnName(i) + " " + resultSet.getMetaData().getColumnDisplaySize(i));
-
-			data = resultSet.getMetaData().getColumnName(i);
-			line += String.format("%1$" + colSizes[i - 1] + "s", data);
-			if (i < nbCol) {
-				line = addColumnDelimiter(line);
-			}
-		}
-		return line;
-	}
-	
-	private String addColumnDelimiter(String line) {
-		line += " "+ "/" +" ";
-		return line;
 	}
 }
